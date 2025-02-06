@@ -1,0 +1,6 @@
+curl http://localhost:11434/api/generate -d '{
+  "model": "gemma2mod",
+  "prompt": "quanto é 1+1? Respond using JSON",
+  "format": "json",
+  "stream": false
+}'

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OficinaStudy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        /* STYLE CHAT BOX */
+        #chat-box {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            max-width: 100%;
+            min-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* STYLE INPUT BOX */
+        #input-box {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>OficinaStudy AI</h1>
+
+    <!-- CHATBOX -->
+    <div id="chat-box"></div>
+
+    <!-- INPUT BOX -->
+    <input type="text" id="input-box" placeholder="Type your message here..." />
+
+    <!-- SEND BUTTON -->
+    <button id="send-button">Send</button>
+
+    <script>
+        // ATRIBUIR UM VALOR AOS IDS 
+        const chatBox = document.getElementById("chat-box");
+        const inputBox = document.getElementById("input-box");
+        const sendButton = document.getElementById("send-button");
+
+        // ADICIONAR ACAO AO BOTAO
+        sendButton.addEventListener("click", async () => {
+            const userInput = inputBox.value;
+
+            // RETIRAR OS ESPACOS EM BRANCO 
+            if (!userInput.trim()) return;
+
+            // ADICIONAR O USERINPUT À CHATBOX 
+            chatBox.innerHTML += `<div><strong>You:</strong> ${userInput}</div>`;
+            inputBox.value = "";
+
+
+            // ESTABELECER LIGACAO COM O SERVER.PY E TRANSFORMAR EM JSON
+            try {
+  
+                const response = await fetch("http://localhost:5000/generate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ input: userInput })
+                });
+                const data = await response.json();
+
+                // ADICIONAR A RESPOSTA DA IA À CHATBOX
+                if (data.response) {
+                    chatBox.innerHTML += `<div><strong>Buddy:</strong> ${data.response}</div>`;
+                } else { 
+                    // DIZER QUE HÁ UM ERRO SE FOR O CASO
+                    chatBox.innerHTML += `<div><strong>Buddy:</strong> Error: ${data.error || "Erro desconhecido :("}</div>`;
+                }
+            } catch (error) {
+                // DIZER SE HOUVE UM ERRO AO CONECTAR COM O SERVIDOR
+                chatBox.innerHTML += `<div><strong>Buddy:</strong> Ops! Houve um erro ao conectar com o servidor! :( </div>`;
+            }
+
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    </script>
+</body>
+</html>
