@@ -2,42 +2,50 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import ollama
 
-# iniciar o flaskapp
 app = Flask(__name__)
 
-CORS(app)  # permitir cross-origin requests
+# comunicar backend com frontend
+CORS(app)
 
+model = "gemma2mod3"  # nome do modelo a ser usado
 
-#################################################################################################
-# como ligar o servidor - executar no terminal - python server.py e em seguida abrir index.html #
-#################################################################################################
+# armazena o histórico da conversa como um array
+conversation_history = []
 
-
-model = "gemma2mod"  # Nome do modelo a ser usado
-
+# definimos a rota /generate, que recebe requisições POST
 @app.route("/generate", methods=["POST"])
 def generate_response():
     try:
-        # Guarda o input na variavel data
+        global conversation_history
+
+        # recolhe os dados enviados pelo utilizador como formato JSON.
         data = request.json
+        user_input = data.get("input", "")
 
-        # Guarda a data do input na variavel prompt, se nao for inserido o default é nulo
-        prompt = data.get("input", "")
-
-        # Se for nulo mostra o erro "no input provided" e identifica-o com o código de erro "400" (Bad Request)
-        if not prompt:
+        # caso o input seja inválido
+        if not user_input:
             return jsonify({"error": "No input provided"}), 400
 
-        # Gerar a resposta
-        response = ollama.generate(model=model, prompt=prompt)
+        # adiciona a mensagem do utilizador ao histórico
+        conversation_history.append({"role": "user", "content": user_input})
 
-        # Returnar a resposta em json
-        return jsonify({"response": response.response})
+        # formata o histórico para enviar ao modelo 
+        formatted_history = "\n".join(
+            [f"{msg['role'].capitalize()}: {msg['content']}" for msg in conversation_history]
+        )
 
-    # Mostra qualquer erro que houve durante a execução e identifica-o com o código de erro "500" (Internal Server Error).
+        # Gera a resposta baseada no histórico completo
+        response = ollama.generate(model=model, prompt=formatted_history)
+
+        # Adiciona a resposta ao histórico
+        conversation_history.append({"role": "assistant", "content": response['response']})
+
+        # retorna a resposta gerada como json
+        return jsonify({"response": response['response']})
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Dar run em localhost:5000
     app.run(host="0.0.0.0", port=5000)
+
