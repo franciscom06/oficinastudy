@@ -26,6 +26,11 @@
             padding: 10px;
             margin-bottom: 20px;
         }
+        #box {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -46,10 +51,36 @@
         const inputBox = document.getElementById("input-box");
         const sendButton = document.getElementById("send-button");
 
+        
+        
+
+
         // ADICIONAR ACAO AO BOTAO
         sendButton.addEventListener("click", async () => {
             const userInput = inputBox.value;
 
+            // DEFINIR AS PALAVRAS CHAVE
+            const keywordList = ["exercicio", "escolhas", "multiplas", "exercício", "múltiplas", "escolha"];
+
+            function checkKeywords() {
+                userInputLower = userInput.toLowerCase();
+                const hasKeyword = keywordList.some(keyword => userInputLower.includes(keyword));
+
+                if (hasKeyword) {
+                    alert("sim!!! c:");
+                    const newInput = document.createElement("input");
+                    newInput.type = "text";
+                    newInput.id = "box";
+                    newInput.placeholder = "Type your message here...";
+
+
+                    document.body.appendChild(newInput);
+                } else {
+                    alert("nao :c");
+                }
+            }
+            checkKeywords();
+            
             // RETIRAR OS ESPACOS EM BRANCO 
             if (!userInput.trim()) return;
 
@@ -82,9 +113,10 @@
                 chatBox.innerHTML += `<div><strong>Buddy:</strong> Ops! Houve um erro ao conectar com o servidor! :( </div>`;
             }
 
-
+            
             chatBox.scrollTop = chatBox.scrollHeight;
         });
+        
     </script>
 </body>
 </html>
