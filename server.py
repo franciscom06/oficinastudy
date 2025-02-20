@@ -1,51 +1,55 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from typing import Dict
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import ollama
 
-app = Flask(__name__)
+app = FastAPI()
 
-# comunicar backend com frontend
-CORS(app)
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Adjust this for security in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-model = "gemma2mod3"  # nome do modelo a ser usado
+model = "gemma2mod3"  # Model name
+conversation_history = []  # Store conversation history
 
-# armazena o histórico da conversa como um array
-conversation_history = []
+# Define request body model
+class UserInput(BaseModel):
+    input: str
 
-# definimos a rota /generate, que recebe requisições POST
-@app.route("/generate", methods=["POST"])
-def generate_response():
+@app.post("/generate")
+async def generate_response(user_input: UserInput) -> Dict[str, str]:
     try:
         global conversation_history
 
-        # recolhe os dados enviados pelo utilizador como formato JSON.
-        data = request.json
-        user_input = data.get("input", "")
+        if not user_input.input:
+            raise HTTPException(status_code=400, detail="No input provided")
 
-        # caso o input seja inválido
-        if not user_input:
-            return jsonify({"error": "No input provided"}), 400
+        # Add user message to history
+        conversation_history.append({"role": "user", "content": user_input.input})
 
-        # adiciona a mensagem do utilizador ao histórico
-        conversation_history.append({"role": "user", "content": user_input})
-
-        # formata o histórico para enviar ao modelo 
+        # Format conversation history
         formatted_history = "\n".join(
             [f"{msg['role'].capitalize()}: {msg['content']}" for msg in conversation_history]
         )
 
-        # Gera a resposta baseada no histórico completo
+        # Generate response
         response = ollama.generate(model=model, prompt=formatted_history)
+        assistant_response = response.get('response', "")
 
-        # Adiciona a resposta ao histórico
-        conversation_history.append({"role": "assistant", "content": response['response']})
+        # Add assistant response to history
+        conversation_history.append({"role": "assistant", "content": assistant_response})
 
-        # retorna a resposta gerada como json
-        return jsonify({"response": response['response']})
+        return {"response": assistant_response}
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000)
