@@ -1,0 +1,20 @@
+Classificação das orações coordenadas
+
+Explicação das orações cordenadas: As orações coordenadas são classificadas de acordo com as conjunções coordenativas que as introduzem e o valor semântico que se atribui à relação de coordenação. Podem ser: oração coordenada copulativa, oração coordenada adversativa, oração coordenada disjuntiva e oração coordenada conclusiva.
+
+Oração coordenada copulativa – São orações unidas por uma ideia de adição, por intermédio de uma conjunção ou locução coordenativa copulativa (e, nem, não só…mas também, etc.):
+
+Exemplo de oração coordenada copulativa: As crianças foram ao cinema e comeram pipocas.
+
+Oração coordenada adversativa – São orações unidas por uma ideia de oposição, por intermédio de uma conjunção ou locução coordenativa adversativa (mas, porém, todavia, etc.):
+
+Exemplo oração coordenada adversativa: As crianças foram ao cinema, mas não comeram pipocas.
+
+Oração coordenada disjuntiva – São duas orações postas em alternativa, por intermédio de uma conjunção ou locução coordenativa disjuntiva (ou, quer…quer, seja…seja, etc.):
+
+Exemplo oração coordenada disjuntiva: Querem encomendar comida, ou jantar fora?
+
+Oração coordenada conclusiva – São duas orações unidas por uma conjunção ou locução coordenativa conclusiva (logo, portanto, etc.), em que a segunda oração se apresenta como uma conclusão da primeira:
+
+Exemplo oração coordenada conclusiva: O Zé passou no exame de matemática, logo, transitou de ano.{"Máterias": [{"Português": [{"explicação": "As oracoes coordenadas sao classificadas de acordo com as conjuncoes coordenativas que as introduzem e o valor semantico que se atribui a relacao de coordenacao.Podem ser: oracao coordenada copulativa, oracao coordenada adversativa, oracao coordenada disjuntiva e oracao coordenada conclusiva."}], "Matemática": [{"explicação": "A matemática é uma ciência que estuda a"}]}]}
+
