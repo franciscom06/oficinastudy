@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OficinaStudy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #chat-box {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            max-width: 100%;
+            min-height: 300px;
+            overflow-y: auto;
+        }
+
+        #input-box {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        #box {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>OficinaStudy AI</h1>
+
+    <div id="chat-box"></div>
+
+    <input type="text" id="input-box" placeholder="Type your message here..." />
+    <button id="send-button">Send</button>
+    <button id="vault-button">Search Vault</button>
+    <h5 id="verif">Desativado</h5>
+
+    <script>
+        const chatBox = document.getElementById("chat-box");
+        const inputBox = document.getElementById("input-box");
+        const sendButton = document.getElementById("send-button");
+        const vaultButton = document.getElementById("vault-button");
+        const verif = document.getElementById("verif");
+
+        let searchVaultEnabled = false;
+
+        sendButton.addEventListener("click", async () => {
+            const userInput = inputBox.value;
+            if (!userInput.trim()) return;
+
+            chatBox.innerHTML += `<div><strong>You:</strong> ${userInput}</div>`;
+            inputBox.value = "";
+
+            try {
+                const response = await fetch("http://localhost:5000/generate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ input: userInput })
+                });
+                const data = await response.json();
+
+                if (data.response) {
+                    chatBox.innerHTML += `<div><strong>Buddy:</strong> ${data.response}</div>`;
+                } else {
+                    chatBox.innerHTML += `<div><strong>Buddy:</strong> Error: ${data.error || "Erro desconhecido :("}</div>`;
+                }
+            } catch (error) {
+                chatBox.innerHTML += `<div><strong>Buddy:</strong> Ops! Houve um erro ao conectar com o servidor! :( </div>`;
+            }
+
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        vaultButton.addEventListener("click", async () => {
+            try {
+                const response = await fetch("http://localhost:5000/toggle-vault", {
+                    method: "POST",
+                });
+                const data = await response.json();
+                searchVaultEnabled = !searchVaultEnabled;
+                verif.textContent = searchVaultEnabled ? "Ativado" : "Desativado";
+            } catch (error) {
+                console.error("Erro ao alternar o estado do Vault", error);
+            }
+        });
+    </script>
+</body>
+</html>
