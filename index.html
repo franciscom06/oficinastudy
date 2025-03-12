@@ -10,7 +10,6 @@
             margin: 20px;
         }
 
-        /* STYLE CHAT BOX */
         #chat-box {
             margin: 20px 0;
             padding: 10px;
@@ -20,12 +19,12 @@
             overflow-y: auto;
         }
 
-        /* STYLE INPUT BOX */
         #input-box {
             width: calc(100% - 20px);
             padding: 10px;
             margin-bottom: 20px;
         }
+
         #box {
             width: calc(100% - 20px);
             padding: 10px;
@@ -36,87 +35,86 @@
 <body>
     <h1>OficinaStudy AI</h1>
 
-    <!-- CHATBOX -->
     <div id="chat-box"></div>
 
-    <!-- INPUT BOX -->
     <input type="text" id="input-box" placeholder="Type your message here..." />
-
-    <!-- SEND BUTTON -->
     <button id="send-button">Send</button>
+    <button id="vault-button">Search Vault</button>
+    <h5 id="verif">Desativado</h5>
 
     <script>
-        // ATRIBUIR UM VALOR AOS IDS 
         const chatBox = document.getElementById("chat-box");
         const inputBox = document.getElementById("input-box");
         const sendButton = document.getElementById("send-button");
+        const vaultButton = document.getElementById("vault-button");
+        const verif = document.getElementById("verif");
 
-        
-        
+        let searchVaultEnabled = false;
 
-
-        // ADICIONAR ACAO AO BOTAO
         sendButton.addEventListener("click", async () => {
             const userInput = inputBox.value;
-
-            // DEFINIR AS PALAVRAS CHAVE
-            const keywordList = ["exercicio", "escolhas", "multiplas", "exercício", "múltiplas", "escolha"];
-
-            function checkKeywords() {
-                userInputLower = userInput.toLowerCase();
-                const hasKeyword = keywordList.some(keyword => userInputLower.includes(keyword));
-
-                if (hasKeyword) {
-                    alert("sim!!! c:");
-                    const newInput = document.createElement("input");
-                    newInput.type = "text";
-                    newInput.id = "box";
-                    newInput.placeholder = "Type your message here...";
-
-
-                    document.body.appendChild(newInput);
-                } else {
-                    alert("nao :c");
-                }
-            }
-            checkKeywords();
-            
-            // RETIRAR OS ESPACOS EM BRANCO 
             if (!userInput.trim()) return;
 
-            // ADICIONAR O USERINPUT À CHATBOX 
             chatBox.innerHTML += `<div><strong>You:</strong> ${userInput}</div>`;
             inputBox.value = "";
 
+            // Adiciona a mensagem "Gerando..."
+            const loadingMessage = document.createElement("div");
+            loadingMessage.innerHTML = `<strong>Buddy:</strong> Gerando...`;
+            chatBox.appendChild(loadingMessage);
 
-            // ESTABELECER LIGACAO COM O SERVER.PY E TRANSFORMAR EM JSON
             try {
-  
+                const requestBody = {
+                    input: userInput,
+                    estado: verif.textContent
+                };
+
                 const response = await fetch("http://localhost:5000/generate", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ input: userInput })
+                    body: JSON.stringify(requestBody)
                 });
+
                 const data = await response.json();
 
-                // ADICIONAR A RESPOSTA DA IA À CHATBOX
+                // Remove a mensagem "Gerando..."
+                loadingMessage.remove();
+
                 if (data.response) {
                     chatBox.innerHTML += `<div><strong>Buddy:</strong> ${data.response}</div>`;
-                } else { 
-                    // DIZER QUE HÁ UM ERRO SE FOR O CASO
+                } else {
                     chatBox.innerHTML += `<div><strong>Buddy:</strong> Error: ${data.error || "Erro desconhecido :("}</div>`;
                 }
             } catch (error) {
-                // DIZER SE HOUVE UM ERRO AO CONECTAR COM O SERVIDOR
+                // Remove a mensagem "Gerando..." caso ocorra erro
+                loadingMessage.remove();
                 chatBox.innerHTML += `<div><strong>Buddy:</strong> Ops! Houve um erro ao conectar com o servidor! :( </div>`;
             }
 
-            
             chatBox.scrollTop = chatBox.scrollHeight;
         });
-        
+
+
+        vaultButton.addEventListener("click", async () => {
+            const novoStatus = verif.textContent === "Desativado" ? "Ativo" : "Desativado";
+            verif.textContent = novoStatus;
+
+            const requestBody = {
+                input: inputBox.value,
+                estado: novoStatus
+            };
+
+            const response = await fetch('http://localhost:5000/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({requestBody})
+        });
+        const data = await response.json();
+    });
     </script>
 </body>
 </html>
