@@ -40,7 +40,7 @@
     <input type="text" id="input-box" placeholder="Type your message here..." />
     <button id="send-button">Send</button>
     <button id="vault-button">Search Vault</button>
-    <h5 id="verif">Desativado</h5>
+    <h5 id="verif">Desativo</h5>
 
     <script>
         const chatBox = document.getElementById("chat-box");
@@ -66,7 +66,7 @@
             try {
                 const requestBody = {
                     input: userInput,
-                    estado: verif.textContent
+                    estado: novoStatus
                 };
 
                 const response = await fetch("http://localhost:5000/generate", {
@@ -96,25 +96,31 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         });
 
+        let estadoAtual = false; // Variável global para manter o estado atual
 
-        vaultButton.addEventListener("click", async () => {
-            const novoStatus = verif.textContent === "Desativado" ? "Ativo" : "Desativado";
-            verif.textContent = novoStatus;
+        async function mudarEstado() {
+            try {
+                const resposta = await fetch("http://localhost:5000/Patch_rag", {
+                    method: "PATCH",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ativo: estadoAtual })
+                });
 
-            const requestBody = {
-                input: inputBox.value,
-                estado: novoStatus
-            };
+                const dados = await resposta.json();
 
-            const response = await fetch('http://localhost:5000/generate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({requestBody})
-        });
-        const data = await response.json();
-    });
+                // Atualiza o estado atual com base na resposta do servidor
+                estadoAtual = dados.verif;
+                
+                // Atualiza o texto do elemento
+                verif.textContent = estadoAtual ? "Ativo" : "Desativo";
+            } catch (erro) {
+                console.error("Erro ao comunicar com o backend:", erro);
+            }
+        }
+
+        vaultButton.addEventListener("click", mudarEstado);
     </script>
 </body>
 </html>

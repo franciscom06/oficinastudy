@@ -1,5 +1,5 @@
 from typing import Dict
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import ollama
@@ -54,12 +54,10 @@ def ollama_chat(user_input, vault_embeddings, vault_content, model, ollama_model
     else:
         user_input_with_context = context_str + "\n\n" + user_input
 
-    if contexto_relevante:
-        print("OLA")
-    conversation_history.append({"role": "user", "content": user_input_with_context})
-    print("💬 Histórico atualizado:", conversation_history)
+    
 
     try:
+        conversation_history.append({"role": "user", "content": user_input_with_context})
         formatted_history = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in conversation_history])
         response = ollama.generate(model=ollama_model, prompt=formatted_history)
 
@@ -91,33 +89,44 @@ conversation_history = []
 # Define request body model
 class UserInput(BaseModel):
     input: str
-    estado: str
+
+
+
+estado_global = {"ativo": False}
+
+@app.patch("/Patch_rag")
+async def receive_rag(request: Request):
+    global estado_global
+    # Inverte o estado atual, independentemente do valor recebido
+    estado_global["ativo"] = not estado_global["ativo"]
+    data = await request.json()
+    print(f"Estado atualizado: {estado_global}")
+    return {"verif": estado_global["ativo"]}#Retorna o estado atualizado
+
+
+app.get("/get_verif_rag") #Envia a informação do rag para o frontend e para o generate
+async def verif_rag_send():
+    global estado_global
+    print("YUPIE")
+    return {"verif": estado_global["ativo"]}
 
 
 @app.post("/generate")
 async def generate_response(user_input: UserInput) -> Dict[str, str]:
-    print("Recebido:", user_input.estado)
     try:
         if not user_input.input:
             raise HTTPException(status_code=400, detail="No input provided")
 
-        if user_input.estado == "Ativo":
-            print("pilinha torta")
-            response = ollama_chat(user_input.input, vault_embeddings_tensor, vault_content, model, ollama_model, conversation_history)
-            print("pilinha direita")
-            return {"response": response}
+        conversation_history.append({"role": "user", "content": user_input.input})
+        formatted_history = "\n".join(
+            [f"{msg['role'].capitalize()}: {msg['content']}" for msg in conversation_history]
+        )   
+        response = ollama.generate(model=ollama_model, prompt=formatted_history)
+        assistant_response = response.get('response', "")
 
-        else:
-            conversation_history.append({"role": "user", "content": user_input.input})
-            formatted_history = "\n".join(
-                [f"{msg['role'].capitalize()}: {msg['content']}" for msg in conversation_history]
-            )
-            response = ollama.generate(model=ollama_model, prompt=formatted_history)
-            assistant_response = response.get('response', "")
+        conversation_history.append({"role": "assistant", "content": assistant_response})
 
-            conversation_history.append({"role": "assistant", "content": assistant_response})
-
-            return {"response": assistant_response}
+        return {"response": assistant_response}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

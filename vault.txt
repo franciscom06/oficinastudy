@@ -16,4 +16,4 @@ Exemplo oração coordenada disjuntiva: Querem encomendar comida, ou jantar fora
 
 Oração coordenada conclusiva – São duas orações unidas por uma conjunção ou locução coordenativa conclusiva (logo, portanto, etc.), em que a segunda oração se apresenta como uma conclusão da primeira:
 
-Exemplo oração coordenada conclusiva: O Zé passou no exame de matemática, logo, transitou de ano.{"Máterias": [{"Português": [{"explicação": "As oracoes coordenadas sao classificadas de acordo com as conjuncoes coordenativas que as introduzem e o valor semantico que se atribui a relacao de coordenacao.Podem ser: oracao coordenada copulativa, oracao coordenada adversativa, oracao coordenada disjuntiva e oracao coordenada conclusiva."}], "Matemática": [{"explicação": "A matemática é uma ciência que estuda a"}]}]}
+Exemplo oração coordenada conclusiva: O Zé passou no exame de matemática, logo, transitou de ano.
