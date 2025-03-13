@@ -23,6 +23,16 @@ app.add_middleware(
 
 ollama_model = "gemma2mod3"  # Model name
 conversation_history = []  # Store conversation history
+# Load the model and vault content
+model = SentenceTransformer("all-MiniLM-L6-v2")
+vault_content = []
+if os.path.exists("vault.txt"):
+    with open("vault.txt", "r", encoding='utf-8') as vault_file:
+        vault_content = vault_file.readlines()
+vault_embeddings = model.encode(vault_content) if vault_content else []
+
+vault_embeddings_tensor = torch.tensor(vault_embeddings) 
+conversation_history = []
 
 if os.path.exists("vault.txt"):
     with open("vault.txt", "r", encoding="utf-8") as vault_file:
@@ -30,10 +40,13 @@ if os.path.exists("vault.txt"):
 
 #Função para obter contexto relevante do vault
 def obter_contexto_relevante(user_input, vault_embeddings, vault_content, model, top_k=2):
-    if vault_embeddings.nelement() == 0:
-        print("❌ Vault embeddings estão vazios!")
-        return []
+    print("putinhasafada123")
+    #if vault_embeddings.nelement() == 0:
+     #   print("❌ Vault embeddings estão vazios!")
+      #  return []
+    print("TOU AQUI")
     input_embedding = model.encode([user_input])
+    print("TOU AQUI2")
     print("🔍 Embeddings calculados:", vault_embeddings)
     cos_scores = util.cos_sim(input_embedding, vault_embeddings)[0]
     top_k = min(top_k, len(cos_scores))
@@ -41,7 +54,9 @@ def obter_contexto_relevante(user_input, vault_embeddings, vault_content, model,
     contexto_relevante = [vault_content[idx].strip() for idx in top_indices]
     return contexto_relevante
 
+
 def ollama_chat(user_input, vault_embeddings, vault_content, model, ollama_model, conversation_history):
+
     print("Entrou em ollama_chat")
     
     contexto_relevante = obter_contexto_relevante(user_input, vault_embeddings, vault_content, model)
@@ -52,9 +67,7 @@ def ollama_chat(user_input, vault_embeddings, vault_content, model, ollama_model
         print("📚 Contexto final usado:", context_str)
         user_input_with_context = context_str + "\n\n" + user_input
     else:
-        user_input_with_context = context_str + "\n\n" + user_input
-
-    
+        user_input_with_context = user_input
 
     try:
         conversation_history.append({"role": "user", "content": user_input_with_context})
@@ -73,18 +86,14 @@ def ollama_chat(user_input, vault_embeddings, vault_content, model, ollama_model
         print("❌ Erro dentro da função ollama_chat:", str(e))
         raise
 
+class ChatRequest(BaseModel):
+    user_input: str
 
+@app.post("/ollama_chat")
+async def chamar_ollama(requests: ChatRequest):
+    resposta = ollama_chat(requests.user_input, vault_embeddings, vault_content, model, ollama_model, conversation_history)
+    return {"resposta": resposta}
 
-# Load the model and vault content
-model = SentenceTransformer("all-MiniLM-L6-v2")
-vault_content = []
-if os.path.exists("vault.txt"):
-    with open("vault.txt", "r", encoding='utf-8') as vault_file:
-        vault_content = vault_file.readlines()
-vault_embeddings = model.encode(vault_content) if vault_content else []
-
-vault_embeddings_tensor = torch.tensor(vault_embeddings) 
-conversation_history = []
 
 # Define request body model
 class UserInput(BaseModel):
@@ -94,17 +103,16 @@ class UserInput(BaseModel):
 
 estado_global = {"ativo": False}
 
-@app.patch("/Patch_rag")
-async def receive_rag(request: Request):
+@app.get("/Get_rag")
+async def receive_rag():
     global estado_global
     # Inverte o estado atual, independentemente do valor recebido
     estado_global["ativo"] = not estado_global["ativo"]
-    data = await request.json()
     print(f"Estado atualizado: {estado_global}")
     return {"verif": estado_global["ativo"]}#Retorna o estado atualizado
 
 
-app.get("/get_verif_rag") #Envia a informação do rag para o frontend e para o generate
+@app.get("/get_verif_rag") #Envia a informação do rag para o frontend e para o generate
 async def verif_rag_send():
     global estado_global
     print("YUPIE")
@@ -112,12 +120,12 @@ async def verif_rag_send():
 
 
 @app.post("/generate")
-async def generate_response(user_input: UserInput) -> Dict[str, str]:
+async def generate_response(user_input: ChatRequest) -> Dict[str, str]:
     try:
-        if not user_input.input:
+        if not user_input.user_input:
             raise HTTPException(status_code=400, detail="No input provided")
 
-        conversation_history.append({"role": "user", "content": user_input.input})
+        conversation_history.append({"role": "user", "content": user_input.user_input})
         formatted_history = "\n".join(
             [f"{msg['role'].capitalize()}: {msg['content']}" for msg in conversation_history]
         )   

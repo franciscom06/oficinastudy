@@ -49,7 +49,6 @@
         const vaultButton = document.getElementById("vault-button");
         const verif = document.getElementById("verif");
 
-        let searchVaultEnabled = false;
 
         sendButton.addEventListener("click", async () => {
             const userInput = inputBox.value;
@@ -64,17 +63,18 @@
             chatBox.appendChild(loadingMessage);
 
             try {
+                console.log("Cheguei");
                 const requestBody = {
-                    input: userInput,
-                    estado: novoStatus
+                    user_input: userInput,
                 };
+                console.log("Chegou até aqui");
+                console.log('Request Body:', JSON.stringify(requestBody));
 
-                const response = await fetch("http://localhost:5000/generate", {
-                    method: "POST",
+                const response = await fetch("http://localhost:5000/get_verif_rag", {
+                    method: "GET",
                     headers: {
-                        "Content-Type": "application/json"
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(requestBody)
                 });
 
                 const data = await response.json();
@@ -82,11 +82,69 @@
                 // Remove a mensagem "Gerando..."
                 loadingMessage.remove();
 
-                if (data.response) {
+                if(data.verif === true){
+                    try{
+                        console.log("assado")
+                    
+                        const resposta_input = await fetch("http://localhost:5000/ollama_chat", {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(requestBody)
+                        })
+
+                        const data_input = await resposta_input.json();
+
+                        if (data_input.resposta) {
+                            console.log(data_input.resposta)
+                            chatBox.innerHTML += `<div><strong>Buddy:</strong> ${data_input.resposta}</div>`;
+                        } else {
+                            chatBox.innerHTML += `<div><strong>Buddy:</strong> Error: ${data.error || "Erro desconhecido :("}</div>`;
+                        }
+                    } catch{
+                        loadingMessage.remove();
+                        chatBox.innerHTML += `<div><strong>Buddy:</strong> Ops! Houve um erro ao conectar com o servidor! :( </div>`;
+                    }
+                    
+
+
+
+
+                } else if(data.verif === false) {
+                    
+                    try{
+                        console.log("cozido")
+                        const resposta_input = await fetch("http://localhost:5000/generate", {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(requestBody)
+                        })
+
+                        const data_input = await resposta_input.json();
+
+                        if (data_input.response) {
+                            console.log(data_input.response)
+                            chatBox.innerHTML += `<div><strong>Buddy:</strong> ${data_input.response}</div>`;
+                        } else {
+                            chatBox.innerHTML += `<div><strong>Buddy:</strong> Error: ${data.error || "Erro desconhecido :("}</div>`;
+                        }
+                    } catch{
+                        loadingMessage.remove();
+                        chatBox.innerHTML += `<div><strong>Buddy:</strong> Ops! Houve um erro ao conectar com o servidor! :( </div>`;
+                    }
+                } else{
+                    console.log("frito")
+                }
+
+
+                /*if (data.response) {
                     chatBox.innerHTML += `<div><strong>Buddy:</strong> ${data.response}</div>`;
                 } else {
                     chatBox.innerHTML += `<div><strong>Buddy:</strong> Error: ${data.error || "Erro desconhecido :("}</div>`;
-                }
+                }*/
             } catch (error) {
                 // Remove a mensagem "Gerando..." caso ocorra erro
                 loadingMessage.remove();
@@ -96,16 +154,14 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         });
 
-        let estadoAtual = false; // Variável global para manter o estado atual
-
+        //Atualizar o estado do botão e alternar entre true ou false
         async function mudarEstado() {
             try {
-                const resposta = await fetch("http://localhost:5000/Patch_rag", {
-                    method: "PATCH",
+                const resposta = await fetch("http://localhost:5000/Get_rag", {
+                    method: "GET",
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ ativo: estadoAtual })
                 });
 
                 const dados = await resposta.json();
