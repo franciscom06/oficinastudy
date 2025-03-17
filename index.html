@@ -56,6 +56,7 @@
 
             chatBox.innerHTML += `<div><strong>You:</strong> ${userInput}</div>`;
             inputBox.value = "";
+            
 
             // Adiciona a mensagem "Gerando..."
             const loadingMessage = document.createElement("div");
@@ -80,7 +81,7 @@
                 const data = await response.json();
 
                 // Remove a mensagem "Gerando..."
-                loadingMessage.remove();
+                
 
                 if(data.verif === true){
                     try{
@@ -97,9 +98,12 @@
                         const data_input = await resposta_input.json();
 
                         if (data_input.resposta) {
+                            loadingMessage.remove();
                             console.log(data_input.resposta)
-                            chatBox.innerHTML += `<div><strong>Buddy:</strong> ${data_input.resposta}</div>`;
+                            
+                            chatBox.innerHTML += `<div><strong>Buddy:</strong> ${formatResponse(data_input.resposta)}</div>`;
                         } else {
+                            loadingMessage.remove();
                             chatBox.innerHTML += `<div><strong>Buddy:</strong> Error: ${data.error || "Erro desconhecido :("}</div>`;
                         }
                     } catch{
@@ -107,9 +111,6 @@
                         chatBox.innerHTML += `<div><strong>Buddy:</strong> Ops! Houve um erro ao conectar com o servidor! :( </div>`;
                     }
                     
-
-
-
 
                 } else if(data.verif === false) {
                     
@@ -127,24 +128,19 @@
 
                         if (data_input.response) {
                             console.log(data_input.response)
-                            chatBox.innerHTML += `<div><strong>Buddy:</strong> ${data_input.response}</div>`;
+                            loadingMessage.remove();
+                            chatBox.innerHTML += `<div><strong>Buddy:</strong> ${formatResponse(data_input.response)}</div>`;
                         } else {
+                            loadingMessage.remove();
                             chatBox.innerHTML += `<div><strong>Buddy:</strong> Error: ${data.error || "Erro desconhecido :("}</div>`;
                         }
                     } catch{
                         loadingMessage.remove();
                         chatBox.innerHTML += `<div><strong>Buddy:</strong> Ops! Houve um erro ao conectar com o servidor! :( </div>`;
-                    }
-                } else{
+                    } } else{
                     console.log("frito")
                 }
 
-
-                /*if (data.response) {
-                    chatBox.innerHTML += `<div><strong>Buddy:</strong> ${data.response}</div>`;
-                } else {
-                    chatBox.innerHTML += `<div><strong>Buddy:</strong> Error: ${data.error || "Erro desconhecido :("}</div>`;
-                }*/
             } catch (error) {
                 // Remove a mensagem "Gerando..." caso ocorra erro
                 loadingMessage.remove();
@@ -177,6 +173,13 @@
         }
 
         vaultButton.addEventListener("click", mudarEstado);
+
+        function formatResponse(response) {
+            return response
+                .replace(/\n/g, "<br>")
+                .replace(/(^|<br>)[ \t]*\*(?!\*)/g, "$1")
+                .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        }
     </script>
 </body>
 </html>

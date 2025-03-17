@@ -6,7 +6,6 @@ import ollama
 
 #Import for rag
 from sentence_transformers import SentenceTransformer, util
-from openai import OpenAI
 import torch
 import os
 
@@ -21,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ollama_model = "gemma2mod3"  # Model name
+ollama_model = "gemma3:4b"  # Model name
 conversation_history = []  # Store conversation history
 # Load the model and vault content
 model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -56,9 +55,7 @@ def obter_contexto_relevante(user_input, vault_embeddings, vault_content, model,
 
 
 def ollama_chat(user_input, vault_embeddings, vault_content, model, ollama_model, conversation_history):
-
     print("Entrou em ollama_chat")
-    
     contexto_relevante = obter_contexto_relevante(user_input, vault_embeddings, vault_content, model)
     print("📄 Contexto relevante obtido:", contexto_relevante)
     print(contexto_relevante)
