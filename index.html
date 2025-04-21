@@ -64,12 +64,9 @@
             chatBox.appendChild(loadingMessage);
 
             try {
-                console.log("Cheguei");
                 const requestBody = {
                     user_input: userInput,
                 };
-                console.log("Chegou até aqui");
-                console.log('Request Body:', JSON.stringify(requestBody));
 
                 const response = await fetch("http://localhost:5000/get_verif_rag", {
                     method: "GET",
@@ -85,7 +82,6 @@
 
                 if(data.verif === true){
                     try{
-                        console.log("assado")
                     
                         const resposta_input = await fetch("http://localhost:5000/ollama_chat", {
                             method: "POST",
@@ -115,7 +111,6 @@
                 } else if(data.verif === false) {
                     
                     try{
-                        console.log("cozido")
                         const resposta_input = await fetch("http://localhost:5000/generate", {
                             method: "POST",
                             headers: {
@@ -127,7 +122,6 @@
                         const data_input = await resposta_input.json();
 
                         if (data_input.response) {
-                            console.log(data_input.response)
                             loadingMessage.remove();
                             chatBox.innerHTML += `<div><strong>Buddy:</strong> ${formatResponse(data_input.response)}</div>`;
                         } else {
@@ -138,7 +132,6 @@
                         loadingMessage.remove();
                         chatBox.innerHTML += `<div><strong>Buddy:</strong> Ops! Houve um erro ao conectar com o servidor! :( </div>`;
                     } } else{
-                    console.log("frito")
                 }
 
             } catch (error) {
