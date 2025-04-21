@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ollama_model = "gemma3:4b"  # Model name
+ollama_model = "gemma3:12b"  # Model name
 conversation_history = []  # Store conversation history
 # Load the model and vault content
 model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -39,13 +39,10 @@ if os.path.exists("vault.txt"):
 
 #Função para obter contexto relevante do vault
 def obter_contexto_relevante(user_input, vault_embeddings, vault_content, model, top_k=2):
-    print("putinhasafada123")
     #if vault_embeddings.nelement() == 0:
      #   print("❌ Vault embeddings estão vazios!")
       #  return []
-    print("TOU AQUI")
     input_embedding = model.encode([user_input])
-    print("TOU AQUI2")
     print("🔍 Embeddings calculados:", vault_embeddings)
     cos_scores = util.cos_sim(input_embedding, vault_embeddings)[0]
     top_k = min(top_k, len(cos_scores))
@@ -55,13 +52,9 @@ def obter_contexto_relevante(user_input, vault_embeddings, vault_content, model,
 
 
 def ollama_chat(user_input, vault_embeddings, vault_content, model, ollama_model, conversation_history):
-    print("Entrou em ollama_chat")
     contexto_relevante = obter_contexto_relevante(user_input, vault_embeddings, vault_content, model)
-    print("📄 Contexto relevante obtido:", contexto_relevante)
-    print(contexto_relevante)
     if contexto_relevante:
         context_str = "\n".join(contexto_relevante)
-        print("📚 Contexto final usado:", context_str)
         user_input_with_context = context_str + "\n\n" + user_input
     else:
         user_input_with_context = user_input
@@ -71,16 +64,13 @@ def ollama_chat(user_input, vault_embeddings, vault_content, model, ollama_model
         formatted_history = "\n".join([f"{msg['role'].capitalize()}: {msg['content']}" for msg in conversation_history])
         response = ollama.generate(model=ollama_model, prompt=formatted_history)
 
-        print("✅ Resposta do Ollama recebida")
 
         response_text = response["response"]
-        print("📝 Texto da resposta extraído:", response_text)
 
         conversation_history.append({"role": "assistant", "content": response_text})
         return response_text
 
     except Exception as e:
-        print("❌ Erro dentro da função ollama_chat:", str(e))
         raise
 
 class ChatRequest(BaseModel):
@@ -105,14 +95,12 @@ async def receive_rag():
     global estado_global
     # Inverte o estado atual, independentemente do valor recebido
     estado_global["ativo"] = not estado_global["ativo"]
-    print(f"Estado atualizado: {estado_global}")
     return {"verif": estado_global["ativo"]}#Retorna o estado atualizado
 
 
 @app.get("/get_verif_rag") #Envia a informação do rag para o frontend e para o generate
 async def verif_rag_send():
     global estado_global
-    print("YUPIE")
     return {"verif": estado_global["ativo"]}
 
 
