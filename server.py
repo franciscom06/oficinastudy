@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import ollama
 
-#Import for rag
 from sentence_transformers import SentenceTransformer, util
 import torch
 import os
@@ -40,7 +39,6 @@ if os.path.exists("vault.txt"):
 #Função para obter contexto relevante do vault
 def obter_contexto_relevante(user_input, vault_embeddings, vault_content, model, top_k=2):
     #if vault_embeddings.nelement() == 0:
-     #   print("❌ Vault embeddings estão vazios!")
       #  return []
     input_embedding = model.encode([user_input])
     print("🔍 Embeddings calculados:", vault_embeddings)
